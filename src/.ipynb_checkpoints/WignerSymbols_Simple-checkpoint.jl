@@ -14,6 +14,7 @@ export Δ
 
 function wigner3j(j1,j2,j3,m1,m2,m3)
     threeJ_value = 0.0
+    
     if (-j1 <= m1 <= j1) && (-j2 <= m2 <= j2) && (-j3 <= m3 <= j3) && (m1 + m2 == -m3) && (abs(j1 - j2) <= j3 <= j1 + j2)
         min_t = max(0, j2-j3-m1, j1-j3+m2)
         max_t = min(j1+j2-j3, j1-m1, j2+m2)
