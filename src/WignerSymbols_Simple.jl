@@ -79,19 +79,58 @@ function wigner6j(j1,j2,j3,J1,J2,J3)
 end
 export wigner6j
     
-# struct QuantumNumber
-#     val::Int64
-#     is_half::Bool
-# end
+function wigner3j_fromcg(j1, m1, j2, m2, j3, m3)
+    return (-1)^(j1-j2-m3) * CG(j1, m1, j2, m2, j3, -m3) / sqrt(2j3 + 1)
+end
+export wigner3j_fromcg
 
-# import Base: isequal, <=, +, -
-# isequal(x::QuantumNumber, y::QuantumNumber) = (x.val == y.val) && (x.is_half == y.is_half)
-# <=(x::QuantumNumber, y::QuantumNumber) = (x.val <= y.val)
-# function +(x::QuantumNumber, y::QuantumNumber)
-#     double = x.is_half && y.is_half
-#     is_half = ~(x.is_half == y.is_half)
-#     val = (1 + ~(x.is_half)) * x.val + (1 + ~(y.is_half)) * y.val
-#     QuantumNumber(div(val, 2 - double) * (~is_half) + val * is_half, is_half)
-# end
+function wigner6j_fromcg(j1, j2, j3, j4, j5, j6)
+    sum(
+        (-1)^(j1 + j2 + j3 + j4 + j5 + j6 - m1 - m2 - m3 - m4 - m5 - m6)
+        * wigner3j_fromcg(j1, -m1, j2, -m2, j3, -m3)
+        * wigner3j_fromcg(j1, m1, j5, -m5, j6, m6)
+        * wigner3j_fromcg(j4, m4, j2, m2, j6, -m6)
+        * wigner3j_fromcg(j4, -m4, j5, m5, j3, m3)
+        for m1 ∈ -j1:j1,
+            m2 ∈ -j2:j2,
+            m3 ∈ -j3:j3,
+            m4 ∈ -j4:j4,
+            m5 ∈ -j5:j5,
+            m6 ∈ -j6:j6
+        if (m1 + m2 + m3 == 0) & (m1 - m5 + m6 == 0) & (m4 + m2 - m6 == 0) & (-m4 + m5 + m3 == 0)
+    )
+end
+export wigner6j_fromcg
+
+function wigner3j_(j1, j2, j3, m1, m2, m3)
+    try 
+        WignerSymbols.wigner3j(Float64, j1, j2, j3, m1, m2, m3) 
+    catch 
+        0.0
+    end
+end
+
+function wigner6j_(j1, j2, j3, m1, m2, m3)
+    try 
+        WignerSymbols.wigner6j(Float64, j1, j2, j3, m1, m2, m3) 
+    catch 
+        0.0
+    end
+end
+export wigner6j_
+
+function wigner9j(j1, j2, j3, j4, j5, j6, j7, j8, j9)::Float64
+    val = 0.0
+    kmin = max(abs(j1 - j9), abs(j4 - j8), abs(j2 - j6))
+    kmax = min(abs(j1 + j9), abs(j4 + j8), abs(j2 + j6))
+    if kmax >= kmin
+        val += sum(
+            (-1)^(2k) * (2k + 1) * 
+            wigner6j(j1, j4, j7, j8, j9, k) * 
+            wigner6j(j2, j5, j8, j4, k, j6) *
+            wigner6j(j3, j6, j9, k, j1, j2) for k in kmin:kmax)
+    end 
+    return val
+end
 
 end
